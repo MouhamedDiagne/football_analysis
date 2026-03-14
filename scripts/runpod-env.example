@@ -1,0 +1,13 @@
+APP_ENV=production
+HOST=0.0.0.0
+PORT=8000
+UVICORN_WORKERS=1
+UVICORN_RELOAD=false
+MODEL_DEVICE=auto
+PRELOAD_MODELS=0
+APP_CACHE_DIR=/runpod-volume/cache
+YOLO_CONFIG_DIR=/runpod-volume/cache/ultralytics
+TORCH_HOME=/runpod-volume/cache/torch
+UPLOAD_DIR=/runpod-volume/uploads
+REPORT_PATH=/runpod-volume/rapport_match.json
+PROGRESS_PATH=/runpod-volume/analyse_progress.json

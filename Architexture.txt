@@ -1,0 +1,11 @@
+
+    "┌─────────────────────────────────────────────────────────┐
+    "│                  PIPELINE GLOBAL                        │
+    "│                                                         │
+    "│  S1.Ingestion → S2.Terrain → S3.Detection → S4.Tracking │
+    "│       │              │            │              │      │
+    "│  S5.Equipes → S6.Ballon → S7.Physique → S8.Tactique     │
+    "│       │              │            │              │      | 
+    "│  S9.Evenements → S10.Stats → S11.Rapport → S12.API      │
+    "└─────────────────────────────────────────────────────────┘
+ 

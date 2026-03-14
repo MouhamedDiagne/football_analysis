@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.cache/
+.torch_cache/
+.yolo_config/
+video/uploads/*
+!video/uploads/.gitkeep
+smoke_report.json
+smoke_progress.json
+uvicorn_stdout.log
+uvicorn_stderr.log

@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Intelligence Platform — Plan de Développement Sénégal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080c0a;
+    --dark: #0d1410;
+    --card: #111a14;
+    --border: #1e2e22;
+    --green: #00e05a;
+    --green-dim: #007a30;
+    --green-glow: rgba(0,224,90,0.12);
+    --amber: #f5a623;
+    --red: #ff4040;
+    --white: #e8f0ea;
+    --muted: #6b8570;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(8,12,10,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 32px;
+    height: 56px;
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--green);
+    margin-right: 40px;
+    white-space: nowrap;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .nav-tab {
+    padding: 6px 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    background: none;
+  }
+  .nav-tab:hover { color: var(--white); background: var(--card); }
+  .nav-tab.active { color: var(--green); border-color: var(--green-dim); background: var(--green-glow); }
+
+  /* MAIN LAYOUT */
+  main {
+    padding-top: 56px;
+  }
+
+  .section {
+    display: none;
+    min-height: 100vh;
+    padding: 60px 40px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeUp 0.4s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* HERO SECTION */
+  .hero {
+    min-height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 50% at 80% 50%, rgba(0,224,90,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(0,100,40,0.08) 0%, transparent 50%);
+  }
+
+  .hero-pitch {
+    position: absolute;
+    right: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 520px;
+    opacity: 0.04;
+  }
+
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--green);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(52px, 7vw, 96px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .hero-title span { color: var(--green); }
+
+  .hero-subtitle {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 52px);
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 40px;
+  }
+
+  .hero-desc {
+    font-size: 16px;
+    color: #a0b8a8;
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    border-left: 2px solid var(--green);
+    padding-left: 16px;
+  }
+  .hero-stat-num {
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: var(--green);
+    line-height: 1;
+  }
+  .hero-stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* SECTION HEADERS */
+  .section-header {
+    margin-bottom: 48px;
+  }
+
+  .section-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-tag::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--green);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1;
+    letter-spacing: 1px;
+    color: var(--white);
+  }
+  .section-title span { color: var(--green); }
+
+  .section-desc {
+    margin-top: 16px;
+    color: var(--muted);
+    max-width: 640px;
+    font-size: 15px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--green-dim); }
+
+  .card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    letter-spacing: 1px;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+
+  .card-body {
+    font-size: 14px;
+    color: #8fa898;
+    line-height: 1.7;
+  }
+
+  /* GRIDS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  @media (max-width: 900px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    nav { padding: 0 16px; }
+    .section { padding: 40px 20px 60px; }
+  }
+
+  /* BIG NUMBER */
+  .big-num {
+    font-family: var(--font-display);
+    font-size: 48px;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  /* HIGHLIGHT BOX */
+  .highlight-box {
+    background: var(--green-glow);
+    border: 1px solid var(--green-dim);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 24px 0;
+  }
+  .highlight-box p { color: #b0d4ba; font-size: 14px; line-height: 1.7; }
+  .highlight-box strong { color: var(--green); }
+
+  /* TABLE */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .data-table th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(30,46,34,0.5);
+    color: #9ab8a4;
+    vertical-align: middle;
+  }
+  .data-table tr:hover td { background: rgba(0,224,90,0.03); color: var(--white); }
+  .data-table td strong { color: var(--white); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+  }
+  .badge-green { background: rgba(0,224,90,0.15); color: var(--green); border: 1px solid var(--green-dim); }
+  .badge-amber { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .badge-red { background: rgba(255,64,64,0.15); color: var(--red); border: 1px solid rgba(255,64,64,0.3); }
+  .badge-muted { background: rgba(107,133,112,0.15); color: var(--muted); border: 1px solid rgba(107,133,112,0.3); }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+    margin: 40px 0;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--green), var(--green-dim), transparent);
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 40px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -37px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+  }
+
+  .timeline-phase {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .timeline-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .timeline-body {
+    font-size: 14px;
+    color: #8fa898;
+    line-height: 1.7;
+  }
+
+  .timeline-tasks {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .task-pill {
+    padding: 4px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* COMPETITOR CARDS */
+  .competitor-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .competitor-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .competitor-card.threat-high::before { background: var(--red); }
+  .competitor-card.threat-med::before { background: var(--amber); }
+  .competitor-card.threat-low::before { background: var(--green); }
+
+  .comp-name {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .comp-origin { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .comp-strength, .comp-weakness {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  .comp-strength { color: #8fa898; }
+  .comp-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .comp-label.pos { color: var(--amber); }
+  .comp-label.neg { color: var(--green); }
+
+  /* PRICING CARDS */
+  .pricing-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 28px;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .pricing-card:hover { transform: translateY(-4px); border-color: var(--green-dim); }
+  .pricing-card.featured {
+    border-color: var(--green-dim);
+    background: linear-gradient(135deg, var(--card), rgba(0,224,90,0.04));
+  }
+  .pricing-card.featured::after {
+    content: 'RECOMMANDÉ';
+    position: absolute;
+    top: -1px; right: 20px;
+    background: var(--green);
+    color: var(--black);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .pricing-tier {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .pricing-name {
+    font-family: var(--font-display);
+    font-size: 32px;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .pricing-price {
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+  }
+
+  .pricing-amount {
+    font-family: var(--font-display);
+    font-size: 48px;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  .pricing-period {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .pricing-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pricing-features li {
+    font-size: 13px;
+    color: #8fa898;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pricing-features li::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .pricing-features li.disabled {
+    color: var(--muted);
+    opacity: 0.5;
+  }
+  .pricing-features li.disabled::before {
+    content: '—';
+    color: var(--muted);
+  }
+
+  /* REVENUE CHART */
+  .revenue-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .revenue-label {
+    width: 80px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .revenue-track {
+    flex: 1;
+    height: 28px;
+    background: var(--card);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .revenue-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--black);
+    font-weight: 600;
+    transition: width 1s ease;
+  }
+
+  /* SWOT */
+  .swot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .swot-cell {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .swot-label {
+    font-family: var(--font-display);
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .swot-label.S { color: var(--green); }
+  .swot-label.W { color: var(--amber); }
+  .swot-label.O { color: #4fc3f7; }
+  .swot-label.T { color: var(--red); }
+
+  .swot-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .swot-list li {
+    font-size: 13px;
+    color: #8fa898;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .swot-list li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  /* KPI */
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .kpi-num {
+    font-family: var(--font-display);
+    font-size: 40px;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .kpi-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-bottom: 16px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .progress-name { font-size: 13px; color: var(--white); }
+  .progress-pct { font-family: var(--font-mono); font-size: 12px; color: var(--green); }
+  .progress-track { height: 6px; background: var(--card); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 3px; }
+
+  /* ACCENT LINE */
+  .accent { color: var(--green); }
+  .muted { color: var(--muted); }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+
+  h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    color: var(--white);
+  }
+
+  p { margin-bottom: 12px; color: #8fa898; line-height: 1.7; }
+
+  .mb-24 { margin-bottom: 24px; }
+  .mb-40 { margin-bottom: 40px; }
+  .mt-32 { margin-top: 32px; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .two-col, .swot-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; }
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: pulse 2s infinite;
+  }
+  .scroll-hint span { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .dot-arrow {
+    width: 1px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--green), transparent);
+  }
+
+  /* SCENARIO TABLE */
+  .scenario-row { display: grid; grid-template-columns: 120px 1fr 1fr 1fr; gap: 1px; background: var(--border); }
+  .scenario-cell {
+    background: var(--card);
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  .scenario-row:first-child .scenario-cell {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">⬡ SENFOOT INTEL</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('hero')">Vue d'ensemble</button>
+    <button class="nav-tab" onclick="showSection('market')">Marché</button>
+    <button class="nav-tab" onclick="showSection('competition')">Concurrence</button>
+    <button class="nav-tab" onclick="showSection('bizdev')">Développement</button>
+    <button class="nav-tab" onclick="showSection('deployment')">Déploiement</button>
+    <button class="nav-tab" onclick="showSection('model')">Modèle Éco.</button>
+    <button class="nav-tab" onclick="showSection('swot')">SWOT</button>
+    <button class="nav-tab" onclick="showSection('kpis')">KPIs</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ===== HERO ===== -->
+<section id="hero" class="section active">
+  <div class="hero">
+    <div class="hero-bg"></div>
+
+    <svg class="hero-pitch" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="580" height="380" stroke="#00e05a" stroke-width="2" fill="none"/>
+      <line x1="300" y1="10" x2="300" y2="390" stroke="#00e05a" stroke-width="1.5"/>
+      <circle cx="300" cy="200" r="60" stroke="#00e05a" stroke-width="1.5" fill="none"/>
+      <circle cx="300" cy="200" r="4" fill="#00e05a"/>
+      <rect x="10" y="130" width="80" height="140" stroke="#00e05a" stroke-width="1.5" fill="none"/>
+      <rect x="510" y="130" width="80" height="140" stroke="#00e05a" stroke-width="1.5" fill="none"/>
+      <rect x="10" y="160" width="30" height="80" stroke="#00e05a" stroke-width="1" fill="none"/>
+      <rect x="560" y="160" width="30" height="80" stroke="#00e05a" stroke-width="1" fill="none"/>
+      <path d="M 90 200 Q 120 140 90 80" stroke="#00e05a" stroke-width="1" fill="none" stroke-dasharray="4,4"/>
+      <path d="M 510 200 Q 480 140 510 80" stroke="#00e05a" stroke-width="1" fill="none" stroke-dasharray="4,4"/>
+    </svg>
+
+    <div style="position:relative; z-index:1;">
+      <div class="hero-tag">Football Intelligence — Sénégal 2025–2028</div>
+      <div class="hero-title">ANALYSE &amp;<br><span>INTELLIGENCE</span><br>FOOTBALL</div>
+      <div class="hero-subtitle">Plan Stratégique de Déploiement</div>
+      <p class="hero-desc">
+        Un service d'analyse vidéo et de données footballistiques de pointe, 
+        conçu spécifiquement pour les clubs et la Ligue Professionnelle de Football au Sénégal. 
+        Transformer la donnée en avantage compétitif.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">16+</div>
+          <div class="hero-stat-label">Clubs pro ciblés</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">~€400K</div>
+          <div class="hero-stat-label">Revenus An 3</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">3</div>
+          <div class="hero-stat-label">Phases de déploiement</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">0</div>
+          <div class="hero-stat-label">Concurrent direct local</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <span>EXPLORER</span>
+      <div class="dot-arrow"></div>
+    </div>
+  </div>
+
+  <!-- POSITIONING -->
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <div class="section-tag">Positionnement</div>
+    <div class="section-title">POURQUOI <span>MAINTENANT</span></div>
+    <p class="section-desc">Le football africain connaît une digitalisation rapide. Le Sénégal, avec sa montée en puissance continentale, est le marché pilote idéal.</p>
+  </div>
+
+  <div class="grid-3 mb-40">
+    <div class="card">
+      <div class="card-label">Opportunité #1</div>
+      <div class="card-title">Vide technologique</div>
+      <div class="card-body">Aucun fournisseur d'analyse vidéo professionnel n'est aujourd'hui implanté localement au Sénégal. Le marché est vierge, la demande latente est réelle.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Opportunité #2</div>
+      <div class="card-title">Montée en puissance</div>
+      <div class="card-body">Le Sénégal est Champion d'Afrique (2021, 2023). Les clubs cherchent à professionnaliser leur management sportif et à attirer des talents internationaux.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Opportunité #3</div>
+      <div class="card-title">Pression économique</div>
+      <div class="card-body">Face à la raréfaction des sponsors et à la nécessité de valoriser les joueurs à l'export, les clubs ont besoin d'outils de performance et de données de transfert.</div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>Proposition de valeur centrale :</strong> Un service d'analyse footballistique <strong>localement ancré</strong>, <strong>abordable</strong>, <strong>en français</strong>, adapté aux réalités du championnat sénégalais — là où Hudl, Wyscout et Eyeball ne descendent pas.</p>
+  </div>
+</section>
+
+<!-- ===== MARKET ===== -->
+<section id="market" class="section">
+  <div class="section-header">
+    <div class="section-tag">Analyse du Marché</div>
+    <div class="section-title">LE MARCHÉ <span>SÉNÉGALAIS</span></div>
+    <p class="section-desc">Taille, structure et potentiel du marché footballistique professionnel au Sénégal.</p>
+  </div>
+
+  <div class="grid-4 mb-40">
+    <div class="kpi-card">
+      <div class="kpi-num">16</div>
+      <div class="kpi-label">Clubs Ligue 1</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">14</div>
+      <div class="kpi-label">Clubs Ligue 2</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">7+</div>
+      <div class="kpi-label">Académies Pro</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">1</div>
+      <div class="kpi-label">Fédération (FSF)</div>
+    </div>
+  </div>
+
+  <div class="two-col mb-40">
+    <div>
+      <h3>Structure du marché cible</h3>
+
+      <div class="card mb-24">
+        <div class="card-label">Segment Primaire — Ligue 1</div>
+        <div class="card-title">Clubs Professionnels</div>
+        <div class="card-body">
+          Génération Foot, Teungueth FC, AS Douanes, Jaraaf, US Gorée, Casa Sports, Dakar Sacré-Cœur et 9 autres. Ces clubs disposent de budgets opérationnels et cherchent à optimiser leur performance et leur attractivité sur le marché des transferts.<br><br>
+          <span class="badge badge-green">Potentiel élevé</span>
+          &nbsp;<span class="badge badge-amber">Budget limité</span>
+        </div>
+      </div>
+
+      <div class="card mb-24">
+        <div class="card-label">Segment Secondaire</div>
+        <div class="card-title">Fédération & Ligue Pro</div>
+        <div class="card-body">
+          La FSF et la Ligue Sénégalaise de Football Professionnel (LSFP) peuvent devenir partenaires institutionnels et déployer la plateforme à l'ensemble des clubs. Modèle "top-down" avec licence centralisée.<br><br>
+          <span class="badge badge-green">Levier multiplicateur</span>
+          &nbsp;<span class="badge badge-green">Décideur unique</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Segment Tertiaire</div>
+        <div class="card-title">Académies & Équipe Nationale</div>
+        <div class="card-body">
+          Diambars, Génération Foot Académie, ANADS/DUC, ainsi que le staff de la sélection nationale. Besoin fort d'outils de détection et de suivi de talents.<br><br>
+          <span class="badge badge-amber">Moyen terme</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Potentiel revenus par segment</h3>
+
+      <div style="margin-bottom: 32px;">
+        <div class="revenue-bar">
+          <div class="revenue-label">Ligue 1</div>
+          <div class="revenue-track">
+            <div class="revenue-fill" style="width:75%">€160K/an</div>
+          </div>
+        </div>
+        <div class="revenue-bar">
+          <div class="revenue-label">Fédération</div>
+          <div class="revenue-track">
+            <div class="revenue-fill" style="width:55%">€80K/an</div>
+          </div>
+        </div>
+        <div class="revenue-bar">
+          <div class="revenue-label">Ligue 2</div>
+          <div class="revenue-track">
+            <div class="revenue-fill" style="width:30%">€42K/an</div>
+          </div>
+        </div>
+        <div class="revenue-bar">
+          <div class="revenue-label">Académies</div>
+          <div class="revenue-track">
+            <div class="revenue-fill" style="width:22%">€35K/an</div>
+          </div>
+        </div>
+        <div class="revenue-bar">
+          <div class="revenue-label">Sélection</div>
+          <div class="revenue-track">
+            <div class="revenue-fill" style="width:12%">€20K/an</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Contexte macro</div>
+        <div class="card-title">Tendances clés</div>
+        <div class="card-body">
+          <div class="progress-wrap">
+            <div class="progress-header"><span class="progress-name">Pénétration mobile internet</span><span class="progress-pct">72%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:72%"></div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-header"><span class="progress-name">Matchs vidéo-analysables / saison</span><span class="progress-pct">85%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:85%"></div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-header"><span class="progress-name">Clubs ayant un analyste dédié</span><span class="progress-pct">15%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:15%"></div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-header"><span class="progress-name">Clubs utilisant déjà un logiciel</span><span class="progress-pct">8%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:8%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Facteurs de croissance du marché</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-label">Driver 1</div>
+      <div class="card-title">Exportation de joueurs</div>
+      <div class="card-body">Le Sénégal exporte en moyenne 40–60 joueurs/an vers l'Europe. Les clubs ont besoin de données vidéo et statistiques pour valoriser leurs joueurs sur le marché européen.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Driver 2</div>
+      <div class="card-title">Compétitions CAF</div>
+      <div class="card-body">Champions League CAF, Coupe de la Confédération : les clubs engagés doivent produire de l'analyse opposants. Une nécessité compétitive croissante.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Driver 3</div>
+      <div class="card-title">Investissements FIFA/CAF</div>
+      <div class="card-body">Le programme FIFA Forward et le CAF Finance Hub injectent des fonds dans le développement footballistique africain. Budget potentiellement allouable à des outils d'analyse.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPETITION ===== -->
+<section id="competition" class="section">
+  <div class="section-header">
+    <div class="section-tag">Analyse Concurrentielle</div>
+    <div class="section-title">PAYSAGE <span>CONCURRENTIEL</span></div>
+    <p class="section-desc">Cartographie des acteurs de l'analyse football dans le monde et leur présence — ou absence — en Afrique subsaharienne.</p>
+  </div>
+
+  <div class="highlight-box mb-40">
+    <p><strong>Conclusion clé :</strong> Aucun des grands acteurs mondiaux n'a de présence opérationnelle directe au Sénégal. Leurs tarifs sont hors de portée de 90% des clubs sénégalais. La fenêtre d'opportunité est ouverte, mais elle se refermera avec la montée en puissance de l'intérêt africain d'acteurs comme Hudl ou Wyscout.</p>
+  </div>
+
+  <div class="grid-2 mb-40">
+
+    <div class="competitor-card threat-high">
+      <div class="card-label">Menace : <span class="badge badge-red">ÉLEVÉE</span></div>
+      <div class="comp-name">HUDL</div>
+      <div class="comp-origin">🇺🇸 USA — Leader mondial, présent en Afrique du Sud</div>
+      <div class="comp-label pos">Forces</div>
+      <div class="comp-strength">Plateforme complète (vidéo + stats + scout), 100 000+ équipes, intégrations multiples. Présence en Afrique du Sud et croissance africaine annoncée. Produit très mature.</div>
+      <div class="comp-label neg" style="margin-top:12px;">Faiblesses vs notre offre</div>
+      <div class="comp-strength">Prix prohibitifs (€200–€600/mois), interface en anglais uniquement, aucun support local en français, aucune adaptation aux réalités du championnat sénégalais.</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-amber">€2400–7200/an</span>
+        <span class="badge badge-muted">Pas de bureau Dakar</span>
+        <span class="badge badge-muted">Anglais only</span>
+      </div>
+    </div>
+
+    <div class="competitor-card threat-high">
+      <div class="card-label">Menace : <span class="badge badge-red">ÉLEVÉE</span></div>
+      <div class="comp-name">WYSCOUT</div>
+      <div class="comp-origin">🇮🇹 Italie (Hudl) — Leader scouting pro, présent Africa</div>
+      <div class="comp-label pos">Forces</div>
+      <div class="comp-strength">Base de données mondiale de joueurs, utilisé par tous les clubs européens et de nombreux agents. Très utile pour scouting international et valorisation de joueurs sénégalais à l'export.</div>
+      <div class="comp-label neg" style="margin-top:12px;">Faiblesses vs notre offre</div>
+      <div class="comp-strength">Produit conçu pour les acheteurs (clubs européens), pas pour les clubs africains. Très cher pour une utilisation locale. Couverture partielle du championnat sénégalais.</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-amber">€3000–8000/an</span>
+        <span class="badge badge-muted">Couverture partielle SEN</span>
+      </div>
+    </div>
+
+    <div class="competitor-card threat-med">
+      <div class="card-label">Menace : <span class="badge badge-amber">MODÉRÉE</span></div>
+      <div class="comp-name">EYEBALL</div>
+      <div class="comp-origin">🇿🇦 Afrique du Sud — Scout vidéo pour football africain</div>
+      <div class="comp-label pos">Forces</div>
+      <div class="comp-strength">Conçu pour l'Afrique, plus abordable que Hudl/Wyscout. Compréhension des clubs africains, présence dans les compétitions CAF. Croissance forte en Afrique anglophone.</div>
+      <div class="comp-label neg" style="margin-top:12px;">Faiblesses vs notre offre</div>
+      <div class="comp-strength">Peu de présence en Afrique francophone. Pas de bureau à Dakar. Interface en anglais. Couverture limitée du championnat sénégalais. Pas d'accompagnement local.</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-amber">€1200–3600/an</span>
+        <span class="badge badge-muted">Afrique anglophone</span>
+      </div>
+    </div>
+
+    <div class="competitor-card threat-med">
+      <div class="card-label">Menace : <span class="badge badge-amber">MODÉRÉE</span></div>
+      <div class="comp-name">INSTAT / STATS PERFORM</div>
+      <div class="comp-origin">🇷🇺/🇬🇧 — Données statistiques, partenaire CAF</div>
+      <div class="comp-label pos">Forces</div>
+      <div class="comp-strength">Partenaire officiel de la CAF et de certaines fédérations africaines. Données statistiques de haute qualité, utilisé par des médias. Potentielle intégration dans les compétitions CAF.</div>
+      <div class="comp-label neg" style="margin-top:12px;">Faiblesses vs notre offre</div>
+      <div class="comp-strength">Service B2B institutionnel, pas adapté à l'utilisation quotidienne d'un staff technique. Pas d'outils vidéo interactifs. Très coûteux. Pas de présence locale.</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-amber">€5000+/an</span>
+        <span class="badge badge-muted">Institutionnel uniquement</span>
+      </div>
+    </div>
+
+    <div class="competitor-card threat-low">
+      <div class="card-label">Menace : <span class="badge badge-green">FAIBLE</span></div>
+      <div class="comp-name">DARTFISH</div>
+      <div class="comp-origin">🇨🇭 Suisse — Analyse vidéo sport</div>
+      <div class="comp-label pos">Forces</div>
+      <div class="comp-strength">Produit solide pour l'analyse biomécanique et vidéo. Utilisé par des fédérations sportives. Bonne technologie de tagging vidéo.</div>
+      <div class="comp-label neg" style="margin-top:12px;">Faiblesses vs notre offre</div>
+      <div class="comp-strength">Orienté sport de performance individuelle plus que football collectif. Pas de couverture Afrique. Prix élevés. Aucun service commercial en Afrique de l'Ouest.</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-green">Pas de présence AO</span>
+      </div>
+    </div>
+
+    <div class="competitor-card threat-low">
+      <div class="card-label">Menace : <span class="badge badge-green">FAIBLE</span></div>
+      <div class="comp-name">SOLUTIONS LOCALES</div>
+      <div class="comp-origin">🇸🇳 Sénégal — Solutions artisanales internes</div>
+      <div class="comp-label pos">Menaces</div>
+      <div class="comp-strength">Certains clubs utilisent Excel, WhatsApp ou des solutions maison pour le suivi des statistiques. Des passionnés locaux pourraient développer des outils alternatifs avec le temps.</div>
+      <div class="comp-label neg" style="margin-top:12px;">Avantage concurrentiel</div>
+      <div class="comp-strength">Ces solutions sont non-scalables, non-professionnelles et ne permettent pas de valoriser les joueurs à l'international. Notre plateforme offre une rupture technologique immédiate.</div>
+      <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+        <span class="badge badge-green">Pas de scalabilité</span>
+        <span class="badge badge-green">Pas d'export data</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Matrice de positionnement prix / présence locale</h3>
+
+  <div class="card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Solution</th>
+          <th>Prix annuel estimé</th>
+          <th>Présence locale SEN</th>
+          <th>Langue FR</th>
+          <th>Couverture championnat SEN</th>
+          <th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Notre plateforme</strong></td>
+          <td><strong class="accent">€600–2400/an</strong></td>
+          <td><strong class="accent">✓ Dakar</strong></td>
+          <td><strong class="accent">✓ Français</strong></td>
+          <td><strong class="accent">✓ 100%</strong></td>
+          <td><span class="badge badge-green">AVANTAGE FORT</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hudl</strong></td>
+          <td>€2 400–7 200/an</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td><span class="badge badge-red">HORS CIBLE</span></td>
+        </tr>
+        <tr>
+          <td><strong>Wyscout</strong></td>
+          <td>€3 000–8 000/an</td>
+          <td>✗</td>
+          <td>Partiel</td>
+          <td>Partiel</td>
+          <td><span class="badge badge-amber">PARTIELLEMENT</span></td>
+        </tr>
+        <tr>
+          <td><strong>Eyeball</strong></td>
+          <td>€1 200–3 600/an</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td>Partiel</td>
+          <td><span class="badge badge-amber">ANGLOPHONE</span></td>
+        </tr>
+        <tr>
+          <td><strong>InStat</strong></td>
+          <td>€5 000+/an</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td><span class="badge badge-red">HORS CIBLE</span></td>
+        </tr>
+        <tr>
+          <td><strong>Solutions locales</strong></td>
+          <td>€0 (Excel)</td>
+          <td>✓</td>
+          <td>✓</td>
+          <td>✓</td>
+          <td><span class="badge badge-muted">NON PRO</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== BIZDEV ===== -->
+<section id="bizdev" class="section">
+  <div class="section-header">
+    <div class="section-tag">Développement Commercial</div>
+    <div class="section-title">STRATÉGIE DE <span>DÉVELOPPEMENT</span></div>
+    <p class="section-desc">Approche de conquête du marché sénégalais, canaux, partenariats clés et stratégie d'entrée.</p>
+  </div>
+
+  <div class="two-col mb-40">
+    <div>
+      <h3>Stratégie d'entrée marché</h3>
+
+      <div class="card mb-24">
+        <div class="card-label">Axe stratégique 1</div>
+        <div class="card-title">Top-down : La Ligue d'abord</div>
+        <div class="card-body">
+          Approcher la LSFP (Ligue Sénégalaise de Football Professionnel) pour un accord-cadre. Un seul décideur, 16 clubs couverts. La ligue peut inclure le service dans ses packages d'appui aux clubs, co-financer via les droits TV ou les partenariats institutionnels (FIFA Forward, CAF).<br><br>
+          <strong style="color:var(--green);">Avantage :</strong> Ticket élevé, adoption rapide, légitimité institutionnelle.<br>
+          <strong style="color:var(--amber);">Risque :</strong> Cycle de décision long.
+        </div>
+      </div>
+
+      <div class="card mb-24">
+        <div class="card-label">Axe stratégique 2</div>
+        <div class="card-title">Bottom-up : 3 clubs pilotes</div>
+        <div class="card-body">
+          Identifier 2–3 clubs "early adopters" (idéalement Génération Foot, Teungueth FC, AS Douanes) pour une phase pilote à tarif réduit. Créer des cas d'usage concrets, mesurer les impacts, produire des témoignages pour la suite de la commercialisation.<br><br>
+          <strong style="color:var(--green);">Avantage :</strong> Démarrage rapide, preuve de concept.<br>
+          <strong style="color:var(--amber);">Risque :</strong> Revenus limités en phase initiale.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Axe stratégique 3</div>
+        <div class="card-title">Partenariats de distribution</div>
+        <div class="card-body">
+          Collaborer avec des équipementiers (Hummel, Puma Africa), des médias sportifs (Canal+ Afrique, RFM Sport), et des agents FIFA actifs au Sénégal. Ces acteurs peuvent devenir des prescripteurs ou co-distributeurs du service.<br><br>
+          <strong style="color:var(--green);">Avantage :</strong> Effet réseau, crédibilité.<br>
+          <strong style="color:var(--amber);">Risque :</strong> Partage de revenus.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3>Canaux d'acquisition</h3>
+
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+        <div class="card" style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:18px; margin-bottom:4px;">Réseau FSF / LSFP</div>
+              <div style="font-size:12px; color:var(--muted);">Accès direct via position fédérale</div>
+            </div>
+            <span class="badge badge-green">Priorité 1</span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:18px; margin-bottom:4px;">Démonstrations terrain</div>
+              <div style="font-size:12px; color:var(--muted);">Sessions live dans les clubs</div>
+            </div>
+            <span class="badge badge-green">Priorité 1</span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:18px; margin-bottom:4px;">Agents FIFA & scouts</div>
+              <div style="font-size:12px; color:var(--muted);">Prescription par les intermédiaires</div>
+            </div>
+            <span class="badge badge-amber">Priorité 2</span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:18px; margin-bottom:4px;">Médias sportifs SEN</div>
+              <div style="font-size:12px; color:var(--muted);">RFM Sport, Canal+, Wiwsport</div>
+            </div>
+            <span class="badge badge-amber">Priorité 2</span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:18px; margin-bottom:4px;">Conférences / Salons</div>
+              <div style="font-size:12px; color:var(--muted);">CAF Congress, Africa Soccer Forum</div>
+            </div>
+            <span class="badge badge-muted">Priorité 3</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight-box">
+        <p><strong>Avantage décisif :</strong> En tant que membre de fédération, vous avez un accès privilégié aux clubs et aux dirigeants de la ligue. C'est une barrière à l'entrée naturelle qu'aucun concurrent étranger ne peut reproduire.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Offres produit et services associés</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-label">Service core</div>
+      <div class="card-title">Analyse Vidéo</div>
+      <div class="card-body">Tagging vidéo des matchs, création de clips, visualisation des séquences tactiques, analyse de l'opposition, préparation des entraînements. Interface en français, compatible mobile.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Service core</div>
+      <div class="card-title">Data & Stats</div>
+      <div class="card-body">Statistiques joueurs et équipe, heatmaps, analyse des pressing, des transitions, des phases arrêtées. Tableaux de bord pour le staff technique et la direction sportive.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Service premium</div>
+      <div class="card-title">Rapport Scout Export</div>
+      <div class="card-body">Génération de rapports de joueurs formatés pour les clubs européens (format Wyscout-compatible), vidéos highlight pour le marché des transferts. Valorisation des talents locaux.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Service add-on</div>
+      <div class="card-title">Formation & Support</div>
+      <div class="card-body">Formation des analystes et staff technique en présentiel à Dakar. Hotline en français. Sessions mensuelles de formation continue. Coaching à distance.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Service ligue</div>
+      <div class="card-title">Dashboard Fédéral</div>
+      <div class="card-body">Tableau de bord centralisé pour la LSFP : statistiques comparatives entre clubs, suivi du classement des joueurs, données pour attribution récompenses de fin de saison.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Service à valeur ajoutée</div>
+      <div class="card-title">IA & Prédiction</div>
+      <div class="card-body">Phase 3 : intégration d'algorithmes prédictifs (résultats, performance joueurs), détection de talents automatisée, recommandations de recrutement basées sur les données du championnat.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DEPLOYMENT ===== -->
+<section id="deployment" class="section">
+  <div class="section-header">
+    <div class="section-tag">Plan de Déploiement</div>
+    <div class="section-title">ROADMAP <span>2025–2028</span></div>
+    <p class="section-desc">Plan d'exécution en 3 phases sur 36 mois pour atteindre la couverture complète du marché sénégalais.</p>
+  </div>
+
+  <div class="grid-4 mb-40">
+    <div class="kpi-card">
+      <div class="kpi-num">M1–6</div>
+      <div class="kpi-label">Phase 1 : Pilote</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">M7–18</div>
+      <div class="kpi-label">Phase 2 : Lancement</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">M19–30</div>
+      <div class="kpi-label">Phase 3 : Expansion</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">M30+</div>
+      <div class="kpi-label">Phase 4 : Régional</div>
+    </div>
+  </div>
+
+  <div class="timeline">
+
+    <div class="timeline-item">
+      <div class="timeline-phase">Phase 1 — Mois 1 à 6</div>
+      <div class="timeline-title">FONDATION & PILOTE</div>
+      <div class="timeline-body">
+        Valider le product-market fit avec 2–3 clubs pilotes en Ligue 1. Adapter l'interface en français, couvrir les matchs du championnat sénégalais, former les premiers analystes. Établir les partenariats institutionnels avec la LSFP.
+      </div>
+      <div class="timeline-tasks">
+        <div class="task-pill">Sélection 3 clubs pilotes</div>
+        <div class="task-pill">Configuration plateforme FR</div>
+        <div class="task-pill">Intégration data championnat SEN</div>
+        <div class="task-pill">Formation 1ère cohorte analystes</div>
+        <div class="task-pill">Présentation LSFP / FSF</div>
+        <div class="task-pill">Collecte retours utilisateurs</div>
+        <div class="task-pill">Recrutement 1 analyste local</div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Objectif clubs</div>
+          <div class="big-num" style="font-size:32px;">3</div>
+        </div>
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Rev. mensuel</div>
+          <div class="big-num" style="font-size:32px;">€1.5K</div>
+        </div>
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Budget requis</div>
+          <div class="big-num" style="font-size:32px;">€25K</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-phase">Phase 2 — Mois 7 à 18</div>
+      <div class="timeline-title">LANCEMENT COMMERCIAL</div>
+      <div class="timeline-body">
+        Commercialisation à l'ensemble des clubs de Ligue 1, signature d'un accord-cadre avec la LSFP. Lancement du tableau de bord fédéral. Recrutement d'une équipe locale dédiée. Premières conversations avec des fédérations voisines (Côte d'Ivoire, Mali).
+      </div>
+      <div class="timeline-tasks">
+        <div class="task-pill">Accord cadre LSFP</div>
+        <div class="task-pill">Onboarding 8–10 clubs Ligue 1</div>
+        <div class="task-pill">Dashboard fédéral live</div>
+        <div class="task-pill">Lancement service Scout Export</div>
+        <div class="task-pill">Campagne médias sportifs SEN</div>
+        <div class="task-pill">Recrutement équipe locale (3p)</div>
+        <div class="task-pill">Partenariat CAF/FIFA Forward</div>
+        <div class="task-pill">Premiers rapports transferts</div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Objectif clubs</div>
+          <div class="big-num" style="font-size:32px;">10</div>
+        </div>
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Rev. mensuel</div>
+          <div class="big-num" style="font-size:32px;">€12K</div>
+        </div>
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Budget requis</div>
+          <div class="big-num" style="font-size:32px;">€60K</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-phase">Phase 3 — Mois 19 à 30</div>
+      <div class="timeline-title">EXPANSION & PROFONDEUR</div>
+      <div class="timeline-body">
+        Extension à la Ligue 2 et aux académies. Lancement du module IA (prédiction, détection de talents). Intégration des équipes nationales U17, U20, A. Signature avec une 2ème fédération en Afrique de l'Ouest (Côte d'Ivoire ou Guinée).
+      </div>
+      <div class="timeline-tasks">
+        <div class="task-pill">Onboarding Ligue 2 (12 clubs)</div>
+        <div class="task-pill">Module IA détection talents</div>
+        <div class="task-pill">Intégration équipes nationales</div>
+        <div class="task-pill">2ème marché UEMOA</div>
+        <div class="task-pill">Partenariat agent FIFA intégré</div>
+        <div class="task-pill">API intégration clubs européens</div>
+        <div class="task-pill">Certification ISO données sport</div>
+      </div>
+      <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Objectif clients</div>
+          <div class="big-num" style="font-size:32px;">30+</div>
+        </div>
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Rev. mensuel</div>
+          <div class="big-num" style="font-size:32px;">€30K</div>
+        </div>
+        <div class="card" style="padding:12px 16px; flex:1; min-width:140px;">
+          <div class="card-label">Budget requis</div>
+          <div class="big-num" style="font-size:32px;">€120K</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-phase">Phase 4 — Mois 30+</div>
+      <div class="timeline-title">HUB RÉGIONAL AFRIQUE DE L'OUEST</div>
+      <div class="timeline-body">
+        Dakar comme hub technologique pour l'analyse football en Afrique de l'Ouest francophone. Licences dans 5+ pays de la zone UEMOA/CEDEAO. Potentiel de levée de fonds ou de partenariat stratégique avec un acteur européen (acquisition par Hudl/Wyscout ou partenariat exclusif Afrique Francophone).
+      </div>
+      <div class="timeline-tasks">
+        <div class="task-pill">5+ pays UEMOA couverts</div>
+        <div class="task-pill">Option levée de fonds série A</div>
+        <div class="task-pill">Partenariat stratégique européen</div>
+        <div class="task-pill">50+ clients actifs</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== MODEL ECONOMIQUE ===== -->
+<section id="model" class="section">
+  <div class="section-header">
+    <div class="section-tag">Modèle Économique</div>
+    <div class="section-title">REVENUS & <span>PRICING</span></div>
+    <p class="section-desc">Structure tarifaire adaptée aux réalités financières du football sénégalais, avec plusieurs niveaux d'engagement.</p>
+  </div>
+
+  <div class="grid-3 mb-40">
+
+    <div class="pricing-card">
+      <div class="pricing-tier">Tier 01</div>
+      <div class="pricing-name">STARTER</div>
+      <div class="pricing-price">
+        <div class="pricing-amount">€50</div>
+        <div class="pricing-period">par mois · engagement 12 mois</div>
+        <div class="pricing-period" style="margin-top:4px; color:var(--amber);">≈ 33 000 FCFA/mois</div>
+      </div>
+      <ul class="pricing-features">
+        <li>Analyse vidéo basique (10 matchs/mois)</li>
+        <li>Statistiques joueurs & équipe</li>
+        <li>Clips vidéo (jusqu'à 50/mois)</li>
+        <li>1 utilisateur staff</li>
+        <li>Support email FR</li>
+        <li class="disabled">Dashboard fédéral</li>
+        <li class="disabled">Rapports Scout Export</li>
+        <li class="disabled">Module IA</li>
+      </ul>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="pricing-tier">Tier 02</div>
+      <div class="pricing-name">PRO CLUB</div>
+      <div class="pricing-price">
+        <div class="pricing-amount">€150</div>
+        <div class="pricing-period">par mois · engagement 12 mois</div>
+        <div class="pricing-period" style="margin-top:4px; color:var(--amber);">≈ 98 000 FCFA/mois</div>
+      </div>
+      <ul class="pricing-features">
+        <li>Analyse vidéo illimitée</li>
+        <li>Statistiques avancées + heatmaps</li>
+        <li>Clips illimités + templates tactiques</li>
+        <li>3 utilisateurs staff</li>
+        <li>Support téléphonique FR</li>
+        <li>Dashboard fédéral inclus</li>
+        <li>2 rapports Scout Export / mois</li>
+        <li class="disabled">Module IA prédictif</li>
+      </ul>
+    </div>
+
+    <div class="pricing-card">
+      <div class="pricing-tier">Tier 03</div>
+      <div class="pricing-name">ÉLITE</div>
+      <div class="pricing-price">
+        <div class="pricing-amount">€300</div>
+        <div class="pricing-period">par mois · engagement 12 mois</div>
+        <div class="pricing-period" style="margin-top:4px; color:var(--amber);">≈ 197 000 FCFA/mois</div>
+      </div>
+      <ul class="pricing-features">
+        <li>Tout le tier Pro</li>
+        <li>Module IA détection talents</li>
+        <li>Rapports Scout Export illimités</li>
+        <li>Utilisateurs illimités</li>
+        <li>Support dédié + account manager</li>
+        <li>Formation sur site (2x/an)</li>
+        <li>API d'intégration clubs européens</li>
+        <li>Analyse opposition avancée</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="grid-2 mb-40">
+    <div class="card">
+      <div class="card-label">Offre institutionnelle</div>
+      <div class="card-title">Licence Fédérale LSFP</div>
+      <div class="card-body" style="margin-bottom:16px;">Un seul contrat avec la LSFP couvrant l'ensemble des clubs de Ligue 1. Tarif dégressif selon le nombre de clubs inclus. La ligue peut redistribuer le service aux clubs dans son package d'appui.</div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div>
+          <div class="card-label">8 clubs</div>
+          <div class="big-num" style="font-size:28px;">€800<span style="font-family:var(--font-body); font-size:13px; color:var(--muted);">/mois</span></div>
+        </div>
+        <div>
+          <div class="card-label">16 clubs</div>
+          <div class="big-num" style="font-size:28px;">€1 400<span style="font-family:var(--font-body); font-size:13px; color:var(--muted);">/mois</span></div>
+        </div>
+        <div>
+          <div class="card-label">Ligue 1+2</div>
+          <div class="big-num" style="font-size:28px;">€2 000<span style="font-family:var(--font-body); font-size:13px; color:var(--muted);">/mois</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Services à la carte</div>
+      <div class="card-title">Revenus additionnels</div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>Service</th><th>Tarif</th></tr></thead>
+          <tbody>
+            <tr><td>Rapport Scout Export (unitaire)</td><td><strong>€80/rapport</strong></td></tr>
+            <tr><td>Formation sur site (demi-journée)</td><td><strong>€400</strong></td></tr>
+            <tr><td>Analyse opposant sur commande</td><td><strong>€120/match</strong></td></tr>
+            <tr><td>Vidéo highlight joueur pour transfert</td><td><strong>€200</strong></td></tr>
+            <tr><td>API intégration partenaire externe</td><td><strong>€500/an</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Projections de revenus sur 3 ans</h3>
+
+  <div class="card mb-24">
+    <div style="margin-bottom:24px;">
+      <div style="display:flex; gap:8px; margin-bottom:16px; align-items:center;">
+        <div class="card-label" style="margin:0;">Scénario :</div>
+        <span class="badge badge-amber">CONSERVATEUR</span>
+        <span class="badge badge-green">CIBLE</span>
+        <span class="badge badge-muted" style="margin-left:auto; font-size:11px;">Unité : K€/an</span>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <div class="scenario-row">
+        <div class="scenario-cell"><strong>Période</strong></div>
+        <div class="scenario-cell" style="color:var(--white);"><strong>Clubs actifs</strong></div>
+        <div class="scenario-cell" style="color:var(--amber);"><strong>Conservateur</strong></div>
+        <div class="scenario-cell" style="color:var(--green);"><strong>Cible</strong></div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-cell" style="color:var(--muted);">An 1 (S1–S2)</div>
+        <div class="scenario-cell">3 → 8 clubs</div>
+        <div class="scenario-cell" style="color:var(--amber);">€18K</div>
+        <div class="scenario-cell" style="color:var(--green);">€32K</div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-cell" style="color:var(--muted);">An 2</div>
+        <div class="scenario-cell">10 → 20 clients</div>
+        <div class="scenario-cell" style="color:var(--amber);">€75K</div>
+        <div class="scenario-cell" style="color:var(--green);">€140K</div>
+      </div>
+      <div class="scenario-row">
+        <div class="scenario-cell" style="color:var(--muted);">An 3</div>
+        <div class="scenario-cell">25 → 40 clients</div>
+        <div class="scenario-cell" style="color:var(--amber);">€190K</div>
+        <div class="scenario-cell" style="color:var(--green);">€390K</div>
+      </div>
+      <div class="scenario-row" style="border-top: 2px solid var(--green-dim);">
+        <div class="scenario-cell" style="color:var(--white);"><strong>TOTAL 3 ans</strong></div>
+        <div class="scenario-cell" style="color:var(--white);"><strong>Récurrent + services</strong></div>
+        <div class="scenario-cell" style="color:var(--amber);"><strong>€283K</strong></div>
+        <div class="scenario-cell" style="color:var(--green);"><strong>€562K</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>Hypothèse clé :</strong> Un accord-cadre avec la LSFP couvrant 16 clubs à €1 400/mois = <strong>€16 800/mois</strong> de revenus récurrents assurés, soit <strong>€201 600/an</strong> d'un seul contrat. C'est le scénario "game changer" qui sécurise la viabilité financière du projet dès l'An 2.</p>
+  </div>
+</section>
+
+<!-- ===== SWOT ===== -->
+<section id="swot" class="section">
+  <div class="section-header">
+    <div class="section-tag">Analyse stratégique</div>
+    <div class="section-title">ANALYSE <span>SWOT</span></div>
+    <p class="section-desc">Forces, faiblesses, opportunités et menaces du déploiement de ce service au Sénégal.</p>
+  </div>
+
+  <div class="swot-grid mb-40">
+    <div class="swot-cell">
+      <div class="swot-label S">FORCES</div>
+      <ul class="swot-list">
+        <li>Position unique en tant que membre de fédération : accès direct aux décideurs</li>
+        <li>Connaissance profonde du marché local (clubs, championnat, acteurs)</li>
+        <li>Absence de concurrent local direct — premier entrant</li>
+        <li>Service en français adapté aux réalités africaines</li>
+        <li>Prix compétitifs vs solutions internationales (5–10x moins cher)</li>
+        <li>Double rôle club + fédération = légitimité institutionnelle forte</li>
+        <li>Compréhension des contraintes budgétaires des clubs sénégalais</li>
+      </ul>
+    </div>
+    <div class="swot-cell">
+      <div class="swot-label W">FAIBLESSES</div>
+      <ul class="swot-list">
+        <li>Budget de démarrage limité pour la mise en marché</li>
+        <li>Capacité opérationnelle initiale restreinte (équipe réduite)</li>
+        <li>Dépendance à la qualité de la captation vidéo dans les stades locaux</li>
+        <li>Cycles de paiement longs au Sénégal, gestion du cashflow complexe</li>
+        <li>Risque de conflit d'intérêts perçu (club + fédération + fournisseur)</li>
+        <li>Faible culture de la donnée dans les clubs sénégalais actuellement</li>
+      </ul>
+    </div>
+    <div class="swot-cell">
+      <div class="swot-label O">OPPORTUNITÉS</div>
+      <ul class="swot-list">
+        <li>CAN 2025 (Maroc) et CAN 2027 : attention internationale sur le football africain</li>
+        <li>Croissance de l'exportation de joueurs sénégalais vers l'Europe</li>
+        <li>Financement FIFA Forward Fund disponible pour digitalisation</li>
+        <li>Partenariats potentiels CAF, Orange/Sonatel, Wave</li>
+        <li>Expansion régionale UEMOA (15 pays, marché non-adressé)</li>
+        <li>Consolidation naturelle : être rachetés ou partenaires de Hudl/Wyscout pour l'Afrique francophone</li>
+        <li>Canal+ Afrique cherche des contenus data-enrichis pour ses diffusions</li>
+      </ul>
+    </div>
+    <div class="swot-cell">
+      <div class="swot-label T">MENACES</div>
+      <ul class="swot-list">
+        <li>Entrée de Hudl ou Eyeball sur le marché sénégalais avec des investissements</li>
+        <li>Instabilité politique ou économique pouvant affecter les budgets des clubs</li>
+        <li>Résistance au changement des staffs techniques conservateurs</li>
+        <li>Problèmes de connectivité internet dans certains stades</li>
+        <li>Faible capacité de paiement des clubs en dehors de Dakar</li>
+        <li>Émergence de solutions gratuites (IA open source) réduisant la valeur perçue</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Facteurs critiques de succès</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-label">FCS #1</div>
+      <div class="card-title">Accord LSFP An 1</div>
+      <div class="card-body">Sécuriser un accord-cadre institutionnel avec la ligue professionnelle dans les 12 premiers mois. C'est le verrou principal qui détermine la trajectoire financière du projet.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">FCS #2</div>
+      <div class="card-title">Preuves de valeur rapides</div>
+      <div class="card-body">Démontrer dans les 6 premiers mois un impact concret : un transfert facilité, une victoire analysée, un talent détecté. Le bouche-à-oreille dans le milieu football sénégalais est déterminant.</div>
+    </div>
+    <div class="card">
+      <div class="card-label">FCS #3</div>
+      <div class="card-title">Ancrage local fort</div>
+      <div class="card-body">Recruter et former des analystes locaux qui connaissent les clubs, parlent les langues locales, et peuvent intervenir sur le terrain. La proximité est un avantage compétitif inimitable.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== KPIs ===== -->
+<section id="kpis" class="section">
+  <div class="section-header">
+    <div class="section-tag">Performance & Métriques</div>
+    <div class="section-title">KPIs <span>STRATÉGIQUES</span></div>
+    <p class="section-desc">Indicateurs clés de performance pour piloter le déploiement et valider la progression.</p>
+  </div>
+
+  <div class="grid-4 mb-40">
+    <div class="kpi-card">
+      <div class="kpi-num">3</div>
+      <div class="kpi-label">Clubs pilotes M6</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">80%</div>
+      <div class="kpi-label">Taux rétention an 1</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">NPS &gt;60</div>
+      <div class="kpi-label">Satisfaction clubs</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-num">€16K</div>
+      <div class="kpi-label">MRR cible M18</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-40">
+    <div class="card">
+      <div class="card-label">KPIs Commerciaux</div>
+      <div class="card-title">Acquisition & Revenus</div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>KPI</th><th>M6</th><th>M12</th><th>M24</th></tr></thead>
+          <tbody>
+            <tr><td>Clubs actifs</td><td>3</td><td>8</td><td>20</td></tr>
+            <tr><td>MRR (€)</td><td>1 500</td><td>6 000</td><td>18 000</td></tr>
+            <tr><td>ARR (€)</td><td>18K</td><td>72K</td><td>216K</td></tr>
+            <tr><td>Churn mensuel</td><td>—</td><td>&lt;5%</td><td>&lt;3%</td></tr>
+            <tr><td>CAC moyen</td><td>—</td><td>&lt;€500</td><td>&lt;€300</td></tr>
+            <tr><td>LTV moyen</td><td>—</td><td>&gt;€3K</td><td>&gt;€6K</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">KPIs Produit & Usage</div>
+      <div class="card-title">Adoption & Engagement</div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>KPI</th><th>Cible M12</th><th>Cible M24</th></tr></thead>
+          <tbody>
+            <tr><td>Matchs analysés / semaine</td><td>8</td><td>25</td></tr>
+            <tr><td>Clips créés / semaine</td><td>50</td><td>200</td></tr>
+            <tr><td>Rapports Scout Export</td><td>5/mois</td><td>25/mois</td></tr>
+            <tr><td>DAU (analystes actifs/j)</td><td>10</td><td>40</td></tr>
+            <tr><td>Formation complétée</td><td>80% clubs</td><td>95% clubs</td></tr>
+            <tr><td>Transferts facilités</td><td>2</td><td>10+</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Plan de financement initial</h3>
+  <div class="grid-3 mb-40">
+    <div class="card">
+      <div class="card-label">Source 1</div>
+      <div class="card-title">FIFA Forward Fund</div>
+      <div class="card-body">Programme d'investissement de la FIFA dans le développement du football. Dossier à soumettre via la FSF. Financement possible de €25K–80K pour la phase pilote et la formation.</div>
+      <div style="margin-top:12px;"><span class="badge badge-amber">Dépôt dossier : M2</span></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Source 2</div>
+      <div class="card-title">Partenariat Orange/Sonatel</div>
+      <div class="card-body">Orange est partenaire historique du football sénégalais. Co-branding de la plateforme, hébergement cloud local, financement partiel en échange de visibilité dans les clubs et sur la plateforme.</div>
+      <div style="margin-top:12px;"><span class="badge badge-amber">Pitch : M3</span></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Source 3</div>
+      <div class="card-title">Revenus clubs pilotes</div>
+      <div class="card-body">Les 3 clubs pilotes payants (tarif réduit 50%) + les services à la carte (rapports, formations) génèrent un cashflow initial pour couvrir les coûts opérationnels minimum.</div>
+      <div style="margin-top:12px;"><span class="badge badge-green">Dès M1</span></div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <p><strong>Prochaine étape recommandée :</strong> Préparer un deck de présentation de 10 slides pour la LSFP et la FSF, en capitalisant sur votre double rôle de club-owner et de membre de fédération. Proposer un accord-cadre pilote sur une saison complète (2025-2026) avec 3 clubs test, financé partiellement par le FIFA Forward Fund. <strong>Objectif : signer avant le début de la prochaine saison.</strong></p>
+  </div>
+
+</section>
+
+</main>
+
+<footer>
+  <span>© SENFOOT INTEL — Football Analysis Platform</span>
+  <span>Confidentiel — Plan Stratégique 2025–2028</span>
+  <span>Document v1.0</span>
+</footer>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Animate revenue bars on load
+document.addEventListener('DOMContentLoaded', () => {
+  const fills = document.querySelectorAll('.revenue-fill');
+  fills.forEach(f => {
+    const w = f.style.width;
+    f.style.width = '0';
+    setTimeout(() => { f.style.width = w; }, 300);
+  });
+
+  // Add progress animation
+  const progFills = document.querySelectorAll('.progress-fill');
+  progFills.forEach(f => {
+    const w = f.style.width;
+    f.style.width = '0';
+    setTimeout(() => { f.style.width = w; }, 500);
+  });
+});
+
+// Re-animate on tab switch
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    setTimeout(() => {
+      const fills = document.querySelectorAll('.section.active .revenue-fill');
+      fills.forEach(f => {
+        const w = f.style.width;
+        f.style.width = '0';
+        setTimeout(() => { f.style.width = w; }, 100);
+      });
+    }, 100);
+  });
+});
+</script>
+</body>
+</html>

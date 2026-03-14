@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚽ Football Analysis Platform</title>
+  <style>
+    /* ── RESET & VARIABLES ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f172a;
+      --surface:  #1e293b;
+      --border:   #334155;
+      --text:     #f1f5f9;
+      --muted:    #94a3b8;
+      --green:    #10b981;
+      --blue:     #3b82f6;
+      --amber:    #f59e0b;
+      --rose:     #f43f5e;
+      --radius:   12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-links { display: flex; gap: 1rem; }
+    .header-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .header-links a:hover { background: var(--border); color: var(--text); }
+
+    /* ── LAYOUT ──────────────────────────────────────────── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── CARDS ───────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    /* ── UPLOAD ZONE ─────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1.2rem;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--green);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .upload-label { font-weight: 600; font-size: 1rem; margin-bottom: 0.3rem; }
+    .upload-hint { color: var(--muted); font-size: 0.85rem; }
+    #file-chosen { margin-top: 0.7rem; color: var(--green); font-size: 0.9rem; }
+    #video-input { display: none; }
+
+    /* ── FORM ────────────────────────────────────────────── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+    .form-group input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.65rem 0.9rem;
+      font-size: 0.9rem;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus { outline: none; border-color: var(--green); }
+
+    /* ── BUTTONS ─────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.6rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    .btn-primary  { background: linear-gradient(135deg, var(--green), #059669); color: #fff; }
+    .btn-secondary { background: var(--border); color: var(--text); font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+    .btn-download  { background: linear-gradient(135deg, var(--blue), #2563eb); color: #fff; }
+
+    /* ── ALERTS ──────────────────────────────────────────── */
+    .alert {
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .alert-error   { background: rgba(244,63,94,.1);  border: 1px solid rgba(244,63,94,.3);  color: #fca5a5; }
+    .alert-success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; }
+    .alert-info    { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.3); color: #93c5fd; }
+
+    /* ── PROGRESS ────────────────────────────────────────── */
+    .progress-wrap {
+      background: #0f172a;
+      border-radius: 999px;
+      height: 14px;
+      overflow: hidden;
+      margin-bottom: 0.7rem;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      transition: width 0.6s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; bottom: 0; width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+      animation: shimmer 1.6s infinite;
+    }
+    @keyframes shimmer { to { left: 100%; } }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── TEAM OVERVIEW GRID ──────────────────────────────── */
+    .teams-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .team-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+    }
+    .team-card.team-0 { border-top: 3px solid var(--amber); }
+    .team-card.team-1 { border-top: 3px solid var(--rose); }
+    .team-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.8rem; }
+    .team-0 .team-name { color: var(--amber); }
+    .team-1 .team-name { color: var(--rose); }
+    .team-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .team-stat-item { text-align: center; }
+    .team-stat-val { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+    .team-stat-label { font-size: 0.7rem; color: var(--muted); }
+
+    /* ── COMPARISON BARS ─────────────────────────────────── */
+    .cmp-header {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .cmp-header .eq0 { text-align: right; color: var(--amber); }
+    .cmp-header .eq1 { text-align: left;  color: var(--rose);  }
+    .cmp-header .mid { text-align: center; }
+
+    .cmp-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.88rem;
+    }
+    .cmp-left  { display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; }
+    .cmp-right { display: flex; align-items: center; gap: 0.5rem; }
+    .cmp-mid   { text-align: center; color: var(--muted); font-size: 0.78rem; line-height: 1.2; }
+    .cmp-val   { font-weight: 700; min-width: 38px; }
+    .cmp-val.left { text-align: right; }
+    .bar-track {
+      flex: 1;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill-amber { height: 100%; border-radius: 999px; background: var(--amber); margin-left: auto; }
+    .bar-fill-rose  { height: 100%; border-radius: 999px; background: var(--rose); }
+
+    /* ── PLAYERS TABLE ───────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      padding: 0.65rem 0.8rem;
+      text-align: left;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      font-size: 0.8rem;
+    }
+    thead th:hover { color: var(--text); }
+    tbody tr { border-bottom: 1px solid rgba(51,65,85,.4); transition: background .15s; }
+    tbody tr:hover { background: rgba(255,255,255,.03); cursor: pointer; }
+    td { padding: 0.65rem 0.8rem; white-space: nowrap; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+    .badge-0 { background: rgba(245,158,11,.15); color: var(--amber); }
+    .badge-1 { background: rgba(244,63,94,.15);  color: var(--rose);  }
+
+    .note-bar {
+      display: inline-block;
+      width: 48px;
+      height: 5px;
+      background: #0f172a;
+      border-radius: 999px;
+      overflow: hidden;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+    .note-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+    }
+
+    /* ── HEATMAP MODAL ───────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 500px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ── FIELD & HEATMAP ─────────────────────────────────── */
+    .field-wrap {
+      position: relative;
+      background: #1a4731;
+      border: 2px solid #2d6a4f;
+      border-radius: 6px;
+      overflow: hidden;
+      aspect-ratio: 105/68;
+    }
+    /* Field markings overlay */
+    .field-markings {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .field-markings svg { width: 100%; height: 100%; }
+    .heatmap-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: repeat(12, 1fr);
+    }
+    .hm-cell { transition: background 0.2s; }
+
+    .hm-legend {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.8rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .hm-legend-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(0,200,100,.5), rgba(255,200,0,.7), rgba(255,50,0,.8));
+    }
+
+    /* ── UTILS ───────────────────────────────────────────── */
+    .hidden { display: none !important; }
+    .flex    { display: flex; }
+    .gap-1   { gap: 0.5rem; }
+    .mt-1    { margin-top: 0.5rem; }
+    .fw-bold { font-weight: 700; }
+    .text-muted { color: var(--muted); }
+    .text-green { color: var(--green); }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .form-row      { grid-template-columns: 1fr 1fr; }
+      .teams-grid    { grid-template-columns: 1fr; }
+      .cmp-row       { font-size: 0.8rem; }
+    }
+    @media (max-width: 500px) {
+      .form-row      { grid-template-columns: 1fr; }
+      header         { padding: 0.8rem 1rem; }
+      main           { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<header>
+  <div class="logo">⚽ Football Analysis Platform</div>
+  <nav class="header-links">
+    <a href="/docs" target="_blank">📖 API</a>
+    <a href="/rapport" target="_blank">🔗 JSON</a>
+    <a href="/health" target="_blank">💚 Health</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ══════════════ UPLOAD SECTION ══════════════ -->
+  <div class="card" id="upload-card">
+    <div class="card-title">📤 Nouvelle analyse</div>
+    <div id="alert-box" class="hidden"></div>
+
+    <!-- Drop zone -->
+    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('video-input').click()">
+      <div class="upload-icon">🎬</div>
+      <div class="upload-label">Glissez votre vidéo ici ou cliquez pour sélectionner</div>
+      <div class="upload-hint">MP4 · AVI · MOV · MKV · WebM</div>
+      <div id="file-chosen" class="hidden"></div>
+    </div>
+    <input type="file" id="video-input" accept="video/*">
+
+    <!-- Team & frame config -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>🟡 Nom Équipe 0</label>
+        <input type="text" id="equipe0" value="WFC" placeholder="Ex: WFC">
+      </div>
+      <div class="form-group">
+        <label>🔴 Nom Équipe 1</label>
+        <input type="text" id="equipe1" value="SONACOS" placeholder="Ex: SONACOS">
+      </div>
+      <div class="form-group">
+        <label>⚡ Max frames <span class="text-muted">(0 = toutes)</span></label>
+        <input type="number" id="max-frames" value="0" min="0" placeholder="0 = analyse complète">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-analyse" onclick="lancerAnalyse()">
+      🚀 Lancer l&apos;analyse
+    </button>
+  </div>
+
+  <!-- ══════════════ PROGRESS SECTION ══════════════ -->
+  <div class="card hidden" id="progress-card">
+    <div class="card-title">⏳ Analyse en cours</div>
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progress-bar" style="width: 0%"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="progress-msg">Initialisation...</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div style="font-size:0.78rem; color:var(--muted); margin-top:0.2rem" id="progress-timer">
+      Temps écoulé : 00:00
+    </div>
+  </div>
+
+  <!-- ══════════════ REPORT SECTION ══════════════ -->
+  <div class="hidden" id="report-section">
+
+    <!-- Match header -->
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div style="font-size:1.2rem; font-weight:800" id="match-title">Rapport de match</div>
+          <div class="text-muted" style="font-size:0.82rem; margin-top:0.2rem" id="match-meta"></div>
+        </div>
+        <a href="/download/rapport" class="btn btn-download" id="btn-download">📥 Télécharger JSON</a>
+      </div>
+    </div>
+
+    <!-- Team overview -->
+    <div class="teams-grid" id="teams-overview"></div>
+
+    <!-- Stat comparison -->
+    <div class="card">
+      <div class="card-title">📊 Comparaison des équipes</div>
+      <div id="stat-comparison"></div>
+    </div>
+
+    <!-- Players table -->
+    <div class="card">
+      <div class="card-title">👥 Classement des joueurs <span class="text-muted" style="text-transform:none;font-weight:400">(cliquez sur une ligne pour la heatmap)</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortTable('rang')">Rang ⇅</th>
+              <th onclick="sortTable('joueur_id')">ID ⇅</th>
+              <th>Équipe</th>
+              <th>Poste</th>
+              <th onclick="sortTable('note_performance')">Note ⇅</th>
+              <th onclick="sortTable('distance_km')">Distance ⇅</th>
+              <th onclick="sortTable('vitesse_max_kmh')">Vit. max ⇅</th>
+              <th onclick="sortTable('passes_cles')">Passes clés ⇅</th>
+              <th onclick="sortTable('tirs_total')">Tirs ⇅</th>
+              <th onclick="sortTable('buts')">Buts ⇅</th>
+              <th>🗺️</th>
+            </tr>
+          </thead>
+          <tbody id="players-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /report-section -->
+</main>
+
+<!-- ══════════════ HEATMAP MODAL ══════════════ -->
+<div class="modal-overlay" id="heatmap-modal" onclick="closeModalIfBackdrop(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <strong id="heatmap-title">Heatmap joueur</strong>
+      <button class="modal-close" onclick="closeHeatmap()" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="field-wrap">
+      <!-- SVG field markings -->
+      <div class="field-markings">
+        <svg viewBox="0 0 105 68" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.5">
+          <!-- Border -->
+          <rect x="2" y="2" width="101" height="64"/>
+          <!-- Centre line -->
+          <line x1="52.5" y1="2" x2="52.5" y2="66"/>
+          <!-- Centre circle -->
+          <circle cx="52.5" cy="34" r="9.15"/>
+          <!-- Centre spot -->
+          <circle cx="52.5" cy="34" r="0.5" fill="rgba(255,255,255,0.3)" stroke="none"/>
+          <!-- Left penalty area -->
+          <rect x="2" y="13.84" width="16.5" height="40.32"/>
+          <!-- Right penalty area -->
+          <rect x="86.5" y="13.84" width="16.5" height="40.32"/>
+          <!-- Left goal area -->
+          <rect x="2" y="24.84" width="5.5" height="18.32"/>
+          <!-- Right goal area -->
+          <rect x="97.5" y="24.84" width="5.5" height="18.32"/>
+        </svg>
+      </div>
+
+      <!-- Heatmap cells -->
+      <div class="heatmap-grid" id="heatmap-grid"></div>
+    </div>
+
+    <div class="hm-legend">
+      <span>Faible</span>
+      <div class="hm-legend-bar"></div>
+      <span>Élevé</span>
+    </div>
+    <div style="font-size:0.75rem; color:var(--muted); margin-top:0.5rem; text-align:center">
+      Les zones rouges indiquent une forte présence du joueur sur le terrain.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ JAVASCRIPT ══════════════ -->
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+let pollTimer     = null;
+let timerInterval = null;
+let startTime     = null;
+let rapportData   = null;
+let sortField     = 'note_performance';
+let sortDir       = -1;   // -1 = desc, +1 = asc
+let teamNames     = { 0: 'Équipe 0', 1: 'Équipe 1' };
+
+// ── FILE DRAG & DROP ──────────────────────────────────────────
+const dropZone   = document.getElementById('drop-zone');
+const videoInput = document.getElementById('video-input');
+
+videoInput.addEventListener('change', () => handleFileChosen(videoInput.files[0]));
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) {
+    // Assign to input via DataTransfer (supported on most modern browsers)
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(f);
+      videoInput.files = dt.files;
+    } catch (_) {}
+    handleFileChosen(f);
+  }
+});
+
+function handleFileChosen(f) {
+  if (!f) return;
+  const el = document.getElementById('file-chosen');
+  el.textContent = `📎 ${f.name}  (${fmtSize(f.size)})`;
+  el.classList.remove('hidden');
+}
+
+function fmtSize(b) {
+  if (b < 1024 * 1024)       return (b / 1024).toFixed(1) + ' KB';
+  if (b < 1024 * 1024 * 1024) return (b / 1024 / 1024).toFixed(1) + ' MB';
+  return (b / 1024 / 1024 / 1024).toFixed(1) + ' GB';
+}
+
+// ── LAUNCH ANALYSIS ───────────────────────────────────────────
+async function lancerAnalyse() {
+  const file = videoInput.files[0];
+  if (!file) { showAlert('error', '⚠️ Veuillez sélectionner une vidéo.'); return; }
+
+  const equipe0   = document.getElementById('equipe0').value.trim()   || 'Equipe A';
+  const equipe1   = document.getElementById('equipe1').value.trim()   || 'Equipe B';
+  const maxFrames = parseInt(document.getElementById('max-frames').value) || 0;
+
+  teamNames = { 0: equipe0, 1: equipe1 };
+
+  const btn = document.getElementById('btn-analyse');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Upload en cours...';
+  clearAlert();
+
+  const form = new FormData();
+  form.append('fichier',    file);
+  form.append('equipe0',    equipe0);
+  form.append('equipe1',    equipe1);
+  form.append('max_frames', maxFrames);
+
+  try {
+    const resp = await fetch('/upload', { method: 'POST', body: form });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
+
+    // Show progress, hide report
+    document.getElementById('progress-card').classList.remove('hidden');
+    document.getElementById('report-section').classList.add('hidden');
+
+    startTime     = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);
+    startPolling();
+
+    btn.innerHTML = '🔄 Analyse en cours...';
+
+  } catch (e) {
+    showAlert('error', `❌ ${e.message}`);
+    btn.disabled  = false;
+    btn.innerHTML = "🚀 Lancer l'analyse";
+  }
+}
+
+// ── STATUS POLLING ────────────────────────────────────────────
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(checkStatus, 2000);
+  checkStatus();
+}
+
+async function checkStatus() {
+  try {
+    const resp = await fetch('/status');
+    if (!resp.ok) return;
+    const data = await resp.json();
+
+    updateProgressUI(data.pct || 0, data.message || '');
+
+    if (data.etat === 'termine') {
+      stopPolling();
+      showAlert('success', '✅ Analyse terminée avec succès !');
+      resetBtn();
+      await loadRapport();
+
+    } else if (data.etat === 'erreur') {
+      stopPolling();
+      showAlert('error', `❌ Erreur : ${data.message}`);
+      document.getElementById('progress-card').classList.add('hidden');
+      resetBtn();
+    }
+  } catch (_) { /* server restart – ignore */ }
+}
+
+function stopPolling() {
+  clearInterval(pollTimer);
+  clearInterval(timerInterval);
+  pollTimer = timerInterval = null;
+}
+
+function resetBtn() {
+  const btn = document.getElementById('btn-analyse');
+  btn.disabled  = false;
+  btn.innerHTML = "🚀 Lancer l'analyse";
+}
+
+function updateProgressUI(pct, msg) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-msg').textContent = msg;
+}
+
+function updateTimer() {
+  if (!startTime) return;
+  const s   = Math.floor((Date.now() - startTime) / 1000);
+  const mm  = String(Math.floor(s / 60)).padStart(2, '0');
+  const ss  = String(s % 60).padStart(2, '0');
+  document.getElementById('progress-timer').textContent = `Temps écoulé : ${mm}:${ss}`;
+}
+
+// ── LOAD & RENDER REPORT ──────────────────────────────────────
+async function loadRapport() {
+  try {
+    const resp = await fetch('/rapport');
+    if (!resp.ok) return;
+    rapportData = await resp.json();
+    renderReport(rapportData);
+  } catch (e) { console.error('Erreur rapport:', e); }
+}
+
+function renderReport(data) {
+  const equipes = data.equipes || {};
+  const joueurs = data.joueurs || {};
+
+  // Team names from report
+  if (equipes['0']) teamNames[0] = equipes['0'].nom || 'Équipe 0';
+  if (equipes['1']) teamNames[1] = equipes['1'].nom || 'Équipe 1';
+
+  // Match title / meta
+  document.getElementById('match-title').textContent = `${teamNames[0]}  vs  ${teamNames[1]}`;
+  const dur = data.duree_s
+    ? `${Math.floor(data.duree_s / 60)}'${String(Math.round(data.duree_s % 60)).padStart(2,'0')}"`
+    : 'N/A';
+  document.getElementById('match-meta').textContent =
+    `${(data.nb_frames || 0).toLocaleString()} frames · ${data.evenements_total || 0} événements · Durée : ${dur}`;
+
+  renderTeamOverview(equipes);
+  renderStatComparison(equipes);
+
+  const list = Object.entries(joueurs).map(([id, s]) => ({ joueur_id: parseInt(id), ...s }));
+  renderPlayers(list);
+
+  document.getElementById('report-section').classList.remove('hidden');
+  document.getElementById('progress-card').classList.add('hidden');
+  document.getElementById('report-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── TEAM OVERVIEW ─────────────────────────────────────────────
+function renderTeamOverview(equipes) {
+  const wrap = document.getElementById('teams-overview');
+  wrap.innerHTML = '';
+  [0, 1].forEach(id => {
+    const eq = equipes[String(id)];
+    if (!eq) return;
+    const card = document.createElement('div');
+    card.className = `team-card team-${id}`;
+    card.innerHTML = `
+      <div class="team-name">${eq.nom || `Équipe ${id}`}</div>
+      <div class="team-stats-grid">
+        ${tStat(fmt1(eq.possession_pct) + '%', 'Possession')}
+        ${tStat(eq.tirs_total || 0, 'Tirs')}
+        ${tStat(eq.buts || 0, 'Buts')}
+        ${tStat(eq.passes_total || 0, 'Passes')}
+        ${tStat(fmt1(eq.taux_passes_pct) + '%', 'Réussite passes')}
+        ${tStat(fmt1(eq.distance_totale_km) + ' km', 'Distance tot.')}
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function tStat(val, label) {
+  return `<div class="team-stat-item">
+    <div class="team-stat-val">${val}</div>
+    <div class="team-stat-label">${label}</div>
+  </div>`;
+}
+
+// ── STAT COMPARISON ───────────────────────────────────────────
+function renderStatComparison(equipes) {
+  const eq0 = equipes['0'] || {};
+  const eq1 = equipes['1'] || {};
+
+  const metrics = [
+    { label: 'Possession',        key: 'possession_pct',     fmt: fmt1, unit: '%'  },
+    { label: 'Tirs total',        key: 'tirs_total',         fmt: n => n || 0 },
+    { label: 'Tirs cadrés',       key: 'tirs_cadres',        fmt: n => n || 0 },
+    { label: 'Expected Goals',    key: 'expected_goals',     fmt: fmt2 },
+    { label: 'Passes total',      key: 'passes_total',       fmt: n => n || 0 },
+    { label: 'Réussite passes',   key: 'taux_passes_pct',    fmt: fmt0, unit: '%' },
+    { label: 'Pressing',          key: 'pressing_intensite', fmt: fmt1 },
+    { label: 'Distance (km)',     key: 'distance_totale_km', fmt: fmt1 },
+    { label: 'Fautes',            key: 'fautes',             fmt: n => n || 0 },
+    { label: 'Formation',         key: 'formation',          fmt: v => v || '—', noBar: true },
+  ];
+
+  const rows = metrics.map(m => {
+    const v0 = m.fmt(eq0[m.key]);
+    const v1 = m.fmt(eq1[m.key]);
+    if (m.noBar) {
+      return `<div class="cmp-row">
+        <div class="cmp-left"><span class="cmp-val left">${v0}</span></div>
+        <div class="cmp-mid">${m.label}</div>
+        <div class="cmp-right"><span class="cmp-val">${v1}</span></div>
+      </div>`;
+    }
+    const n0 = parseFloat(v0) || 0;
+    const n1 = parseFloat(v1) || 0;
+    const tot = n0 + n1 || 1;
+    const p0 = (n0 / tot) * 100;
+    const p1 = (n1 / tot) * 100;
+    return `<div class="cmp-row">
+      <div class="cmp-left">
+        <span class="cmp-val left">${v0}${m.unit || ''}</span>
+        <div class="bar-track"><div class="bar-fill-amber" style="width:${p0}%"></div></div>
+      </div>
+      <div class="cmp-mid">${m.label}</div>
+      <div class="cmp-right">
+        <div class="bar-track"><div class="bar-fill-rose" style="width:${p1}%"></div></div>
+        <span class="cmp-val">${v1}${m.unit || ''}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const header = `<div class="cmp-header">
+    <div class="eq0">${eq0.nom || 'Équipe 0'}</div>
+    <div class="mid"></div>
+    <div class="eq1">${eq1.nom || 'Équipe 1'}</div>
+  </div>`;
+
+  document.getElementById('stat-comparison').innerHTML = header + rows;
+}
+
+// ── PLAYERS TABLE ─────────────────────────────────────────────
+let _currentPlayers = [];
+
+function renderPlayers(list) {
+  list.sort((a, b) => (b[sortField] || 0) - (a[sortField] || 0));
+  _currentPlayers = list.map((j, i) => ({ ...j, rang: i + 1 }));
+
+  const tbody = document.getElementById('players-tbody');
+  tbody.innerHTML = _currentPlayers.map(j => {
+    const eq  = teamNames[j.equipe_id] || `Eq${j.equipe_id}`;
+    const note = j.note_performance || 0;
+    return `<tr onclick="showHeatmap(${j.joueur_id}, '${escHtml(eq)}')">
+      <td><strong>${j.rang}</strong></td>
+      <td>${j.joueur_id}</td>
+      <td><span class="badge badge-${j.equipe_id}">${escHtml(eq)}</span></td>
+      <td class="text-muted">${j.poste || '—'}</td>
+      <td>
+        <strong>${fmt1(note)}</strong>
+        <span class="note-bar"><span class="note-bar-fill" style="width:${Math.min(100,note)}%"></span></span>
+      </td>
+      <td>${fmt2(j.distance_km)} km</td>
+      <td>${fmt1(j.vitesse_max_kmh)} km/h</td>
+      <td>${j.passes_cles || 0}</td>
+      <td>${j.tirs_total || 0}</td>
+      <td>${j.buts || 0}</td>
+      <td>
+        <button class="btn btn-secondary"
+          onclick="event.stopPropagation(); showHeatmap(${j.joueur_id},'${escHtml(eq)}')"
+          title="Voir heatmap">🗺️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sortTable(field) {
+  if (sortField === field) sortDir *= -1;
+  else { sortField = field; sortDir = -1; }
+  if (!rapportData) return;
+  const list = Object.entries(rapportData.joueurs)
+    .map(([id, s]) => ({ joueur_id: parseInt(id), ...s }));
+  list.sort((a, b) => sortDir * ((b[sortField] || 0) - (a[sortField] || 0)));
+  renderPlayers(list);
+}
+
+// ── HEATMAP ───────────────────────────────────────────────────
+async function showHeatmap(joueurId, eqNom) {
+  try {
+    const resp = await fetch(`/joueurs/${joueurId}/heatmap`);
+    if (!resp.ok) { alert('Heatmap non disponible pour ce joueur.'); return; }
+    const data = await resp.json();
+
+    document.getElementById('heatmap-title').textContent =
+      `🗺️ Heatmap — Joueur #${joueurId}  (${eqNom || ''})`;
+
+    const grid = document.getElementById('heatmap-grid');
+    grid.innerHTML = '';
+
+    const hm = data.heatmap || [];
+    hm.forEach(row => {
+      row.forEach(val => {
+        const cell = document.createElement('div');
+        cell.className = 'hm-cell';
+        if (val > 0) {
+          // green (0) → yellow (50) → red (100)
+          const r = Math.min(255, Math.round(val * 2.55));
+          const g = Math.max(0, Math.round(255 - val * 2.0));
+          const a = Math.min(0.85, 0.1 + val / 100 * 0.75);
+          cell.style.background = `rgba(${r},${g},0,${a.toFixed(2)})`;
+        }
+        grid.appendChild(cell);
+      });
+    });
+
+    document.getElementById('heatmap-modal').classList.add('open');
+  } catch (e) {
+    alert('Erreur lors du chargement de la heatmap.');
+  }
+}
+
+function closeHeatmap() {
+  document.getElementById('heatmap-modal').classList.remove('open');
+}
+function closeModalIfBackdrop(e) {
+  if (e.target === document.getElementById('heatmap-modal')) closeHeatmap();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeHeatmap(); });
+
+// ── ALERTS ────────────────────────────────────────────────────
+function showAlert(type, msg) {
+  const box = document.getElementById('alert-box');
+  box.className = `alert alert-${type}`;
+  box.textContent = msg;
+  box.classList.remove('hidden');
+}
+function clearAlert() {
+  document.getElementById('alert-box').classList.add('hidden');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+const fmt0 = v => Math.round(parseFloat(v) || 0);
+const fmt1 = v => (parseFloat(v) || 0).toFixed(1);
+const fmt2 = v => (parseFloat(v) || 0).toFixed(2);
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── INIT — resume active analysis or load existing report ─────
+(async function init() {
+  try {
+    const resp = await fetch('/status');
+    const st   = await resp.json();
+    if (st.etat === 'processing') {
+      document.getElementById('progress-card').classList.remove('hidden');
+      updateProgressUI(st.pct || 0, st.message || '');
+      startTime     = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+      startPolling();
+      const btn = document.getElementById('btn-analyse');
+      btn.disabled  = true;
+      btn.innerHTML = '🔄 Analyse en cours...';
+    } else if (st.rapport_disponible) {
+      await loadRapport();
+    }
+  } catch (_) {}
+})();
+</script>
+</body>
+</html>

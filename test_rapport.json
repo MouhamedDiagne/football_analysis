@@ -1,0 +1,14 @@
+{
+  "frames_traitees": 300,
+  "joueurs": 8,
+  "equipes": {
+    "0": {
+      "nom": "WFC",
+      "possession_pct": 0.0
+    },
+    "1": {
+      "nom": "SONACOS",
+      "possession_pct": 0.0
+    }
+  }
+}

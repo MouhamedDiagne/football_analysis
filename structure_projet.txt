@@ -1,0 +1,37 @@
+football_analysis/
+│
+├── services/
+│   ├── s01_ingestion/
+│   │   └── video_ingestion_service.py
+│   ├── s02_terrain/
+│   │   └── terrain_detection_service.py
+│   ├── s03_detection/
+│   │   └── player_detection_service.py
+│   ├── s04_tracking/
+│   │   └── tracking_service.py
+│   ├── s05_equipes/
+│   │   └── team_classification_service.py
+│   ├── s06_ballon/
+│   │   └── ball_tracking_service.py
+│   ├── s07_physique/
+│   │   └── physical_stats_service.py
+│   ├── s08_tactique/
+│   │   └── tactical_analysis_service.py
+│   ├── s09_evenements/
+│   │   └── event_detection_service.py
+│   ├── s10_stats/
+│   │   └── stats_aggregator_service.py
+│   ├── s11_rapport/
+│   │   └── report_generator_service.py
+│   └── s12_api/
+│       └── api_service.py
+│
+├── core/
+│   ├── base_service.py
+│   ├── data_models.py
+│   └── pipeline.py
+│
+├── config/
+│   └── settings.py
+│
+└── main.py
