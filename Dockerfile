@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN ln -sf /usr/bin/python3 /usr/local/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/local/bin/pip
+
 COPY requirements.app.txt /app/requirements.app.txt
 
 RUN python3 -m pip install --upgrade pip && \

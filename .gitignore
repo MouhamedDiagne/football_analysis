@@ -11,5 +11,7 @@ video/uploads/*
 !video/uploads/.gitkeep
 smoke_report.json
 smoke_progress.json
+rapport_match.json
+analyse_progress.json
 uvicorn_stdout.log
 uvicorn_stderr.log

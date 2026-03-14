@@ -12,11 +12,13 @@ export TORCH_HOME="${TORCH_HOME:-${APP_CACHE_DIR}/torch}"
 
 mkdir -p "${APP_CACHE_DIR}" "${YOLO_CONFIG_DIR}" "${TORCH_HOME}" /app/video/uploads
 
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+
 if [[ "${PRELOAD_MODELS:-0}" == "1" ]]; then
-  python download_models.py
+  "${PYTHON_BIN}" download_models.py
 fi
 
-exec python -m uvicorn services.s12_api.api_service:app \
+exec "${PYTHON_BIN}" -m uvicorn services.s12_api.api_service:app \
   --host "${HOST}" \
   --port "${PORT}" \
   --workers "${UVICORN_WORKERS}"

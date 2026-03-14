@@ -13,6 +13,8 @@ __pycache__
 video/uploads/*
 smoke_report.json
 smoke_progress.json
+rapport_match.json
+analyse_progress.json
 test_rapport.json
 uvicorn_stdout.log
 uvicorn_stderr.log

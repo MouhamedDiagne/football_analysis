@@ -36,4 +36,4 @@ docker run --rm --gpus all -p 8000:8000 football-analysis:local
 
 Use the GitHub Actions workflow to publish the image, then deploy it on RunPod.
 
-See [`DEPLOYMENT.md`](c:/Users/Dell/Desktop/AI_Jobs/football_analysis/DEPLOYMENT.md).
+See [`DEPLOYMENT.md`](DEPLOYMENT.md).

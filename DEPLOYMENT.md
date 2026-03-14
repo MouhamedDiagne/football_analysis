@@ -90,7 +90,7 @@ ghcr.io/<your-github-user-or-org>/football-analysis:sha-<commit>
 
 ### Suggested RunPod Environment Variables
 
-Use [`scripts/runpod-env.example`](c:/Users/Dell/Desktop/AI_Jobs/football_analysis/scripts/runpod-env.example) as the source of truth.
+Use [`scripts/runpod-env.example`](scripts/runpod-env.example) as the source of truth.
 
 Copy/paste values:
 
